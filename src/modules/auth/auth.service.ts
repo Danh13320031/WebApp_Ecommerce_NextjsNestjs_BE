@@ -2,7 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -121,5 +121,12 @@ export class AuthService {
       ...tokens,
       user,
     };
+  }
+
+  async logout(usedId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: usedId },
+      data: { refreshToken: null },
+    });
   }
 }
