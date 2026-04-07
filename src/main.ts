@@ -1,5 +1,6 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { PORT_APP } from './common/constants/app.constant';
 import {
@@ -33,6 +34,46 @@ async function bootstrap() {
     credentials: true,
     methods: CORS_METHODS_SECURITY,
     allowedHeaders: CORS_ALLOWED_HEADERS_SECURITY,
+  });
+
+  // Enable swagger documentation
+  const config = new DocumentBuilder()
+    .setTitle('Ecommerce App Api Documentation')
+    .setDescription('Ecommerce App Api Documentation')
+    .setVersion('1.0')
+    .addTag('Ecommerce App Api Documentation DTO')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'Refresh-JWT',
+        name: 'JWT',
+        description: 'Enter refresh JWT token',
+        in: 'header',
+      },
+      'Refresh-JWT-auth',
+    )
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, documentFactory, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+    customSiteTitle: 'Ecommerce App Api Documentation',
+    customfavIcon: 'https://nestjs.com/favicon.ico',
   });
 
   await app.listen(PORT_APP);
