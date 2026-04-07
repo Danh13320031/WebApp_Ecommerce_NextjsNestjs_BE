@@ -1,0 +1,125 @@
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
+import { SART_ROUNDS_SECURITY } from 'src/common/constants/security.constant';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { RegisterDto } from './dto/register.dto';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
+
+  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    const { email, password, firstName, lastName } = registerDto;
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Địa chỉ email đã được đăng ký');
+    }
+
+    try {
+      const hashedPassword: string = await bcrypt.hash(
+        password,
+        SART_ROUNDS_SECURITY,
+      );
+      const user = await this.prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          firstName,
+          lastName,
+        },
+        select: {
+          id: true,
+          email: true,
+          password: false,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      });
+
+      const tokens = await this.generateTokens(user.id, user.email);
+      await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+      return {
+        ...tokens,
+        user,
+      };
+    } catch (error) {
+      console.error('Lỗi khi đăng ký:', error);
+      throw new InternalServerErrorException(
+        'Đăng ký thất bại, vui lòng thử lại sau',
+      );
+    }
+  }
+
+  private async generateTokens(
+    userId: string,
+    email: string,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    const payload = { sub: userId, email };
+    const refreshId: string = randomBytes(16).toString('hex');
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        expiresIn: '15m',
+      }),
+      this.jwtService.signAsync({ ...payload, refreshId }, { expiresIn: '7d' }),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken },
+    });
+  }
+
+  async refreshTokens(userId: string): Promise<AuthResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Người dùng không tồn tại');
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user,
+    };
+  }
+}
