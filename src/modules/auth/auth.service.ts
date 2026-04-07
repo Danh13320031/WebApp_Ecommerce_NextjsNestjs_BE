@@ -2,7 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -11,6 +11,7 @@ import { SART_ROUNDS_SECURITY } from 'src/common/constants/security.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -128,5 +129,30 @@ export class AuthService {
       where: { id: usedId },
       data: { refreshToken: null },
     });
+  }
+
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const { email, password } = loginDto;
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException(
+        'Địa chỉ email hoặc mật khẩu không hợp lệ',
+      );
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
   }
 }
