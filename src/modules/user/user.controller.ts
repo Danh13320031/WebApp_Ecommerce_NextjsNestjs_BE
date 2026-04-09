@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -43,4 +43,18 @@ export class UserController {
   async findAll(): Promise<UserResponseDto[]> {
     return await this.userService.findAll();
   }
+
+  // user by id api
+  @Get(':id')
+  @Roles(ERole.ADMIN)
+  @ApiOperation({ summary: 'Lấy người dùng theo id' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy người dùng theo id thành công',
+    type: UserResponseDto,
+  })
+  async findOne(@Param() id: string): Promise<UserResponseDto> {
+    return await this.userService.findOne(id);
+  }
+
 }
