@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpStatus,
-  Req,
-  UseGuards
-} from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -16,6 +10,8 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import type { IRequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserService } from './user.service';
+import { ERole } from '@prisma/client';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('User - Người dùng')
 @ApiBearerAuth('JWT-auth')
@@ -35,4 +31,30 @@ export class UserController {
   async getProfile(@Req() req: IRequestWithUser): Promise<UserResponseDto> {
     return await this.userService.getProfile(req.user.id);
   }
+
+  // user list api
+  @Get()
+  @Roles(ERole.ADMIN)
+  @ApiOperation({ summary: 'Lấy danh sách người dùng' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy danh sách người dùng thành công',
+  })
+  async findAll(): Promise<UserResponseDto[]> {
+    return await this.userService.findAll();
+  }
+
+  // user by id api
+  @Get(':id')
+  @Roles(ERole.ADMIN)
+  @ApiOperation({ summary: 'Lấy người dùng theo id' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy người dùng theo id thành công',
+    type: UserResponseDto,
+  })
+  async findOne(@Param() id: string): Promise<UserResponseDto> {
+    return await this.userService.findOne(id);
+  }
+
 }
