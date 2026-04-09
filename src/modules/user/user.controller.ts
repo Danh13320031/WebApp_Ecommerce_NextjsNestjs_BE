@@ -1,6 +1,16 @@
-import { Controller, Get, HttpStatus, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -12,6 +22,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UserService } from './user.service';
 import { ERole } from '@prisma/client';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('User - Người dùng')
 @ApiBearerAuth('JWT-auth')
@@ -57,4 +68,19 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
+  // Update current user profile api
+  @Patch('me')
+  @ApiOperation({ summary: 'Cập nhật thông tin người dùng' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cập nhật thông tin người dùng thành công',
+    type: UserResponseDto,
+  })
+  async updateProfile(
+    userId: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    return await this.userService.updateProfile(userId, updateUserDto);
+  }
 }
