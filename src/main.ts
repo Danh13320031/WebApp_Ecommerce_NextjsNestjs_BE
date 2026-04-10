@@ -41,7 +41,6 @@ async function bootstrap() {
     .setTitle('Ecommerce App Api Documentation')
     .setDescription('Ecommerce App Api Documentation')
     .setVersion('1.0')
-    .addTag('Ecommerce App Api Documentation DTO')
     .addBearerAuth(
       {
         type: 'http',
