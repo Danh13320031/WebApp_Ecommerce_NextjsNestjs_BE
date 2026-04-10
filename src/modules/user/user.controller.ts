@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   Patch,
@@ -15,14 +16,16 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ERole } from '@prisma/client';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import type { IRequestWithUser } from 'src/common/interfaces/request-with-user.interface';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserService } from './user.service';
-import { ERole } from '@prisma/client';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('User - Người dùng')
 @ApiBearerAuth('JWT-auth')
@@ -33,6 +36,7 @@ export class UserController {
 
   // user profile api
   @Get('me')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Lấy thông tin người dùng hiện tại' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -46,6 +50,7 @@ export class UserController {
   // user list api
   @Get()
   @Roles(ERole.ADMIN)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Lấy danh sách người dùng' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -58,6 +63,7 @@ export class UserController {
   // user by id api
   @Get(':id')
   @Roles(ERole.ADMIN)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Lấy người dùng theo id' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -70,6 +76,7 @@ export class UserController {
 
   // Update current user profile api
   @Patch('me')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cập nhật thông tin người dùng' })
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({
@@ -78,9 +85,26 @@ export class UserController {
     type: UserResponseDto,
   })
   async updateProfile(
-    userId: string,
+    @GetUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     return await this.userService.updateProfile(userId, updateUserDto);
+  }
+
+  // Change current user password api
+  @Patch('me/password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cập nhật mật khẩu người dùng' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cập nhật mật khẩu người dùng thành công',
+    type: UserResponseDto,
+  })
+  async changePassword(
+    @GetUser('id') userId: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    return await this.userService.changePassword(userId, changePasswordDto);
   }
 }
