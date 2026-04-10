@@ -78,7 +78,7 @@ export class UserController {
   // Update current user profile api
   @Patch('me')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Cập nhật thông tin người dùng' })
+  @ApiOperation({ summary: 'Cập nhật thông tin người dùng hiện tại' })
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -95,7 +95,7 @@ export class UserController {
   // Change current user password api
   @Patch('me/password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Cập nhật mật khẩu người dùng' })
+  @ApiOperation({ summary: 'Cập nhật mật khẩu người dùng hiện tại' })
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -112,7 +112,7 @@ export class UserController {
   // Hard delete current user account api
   @Delete('me')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Xóa tài khoản người dùng' })
+  @ApiOperation({ summary: 'Xóa tài khoản người dùng hiện tại' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Xóa tài khoản người dùng thành công',
@@ -121,5 +121,20 @@ export class UserController {
     @GetUser('id') userId: string,
   ): Promise<{ message: string }> {
     return await this.userService.hardDeleteAccount(userId);
+  }
+
+  // Hard delete user account by id api
+  @Delete(':id')
+  @Roles(ERole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Xóa người dùng theo id' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Xóa người dùng theo id thành công',
+  })
+  async hardDeleteUser(
+    @Param('id') userId: string,
+  ): Promise<{ message: string }> {
+    return await this.userService.hardDeleteUser(userId);
   }
 }

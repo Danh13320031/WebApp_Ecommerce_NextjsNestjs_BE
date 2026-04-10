@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { SART_ROUNDS_SECURITY } from 'src/common/constants/security.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { SART_ROUNDS_SECURITY } from 'src/common/constants/security.constant';
 
 @Injectable()
 export class UserService {
@@ -171,5 +171,17 @@ export class UserService {
     await this.prisma.user.delete({ where: { id: userId } });
 
     return { message: 'Xóa tài khoản thành công' };
+  }
+
+  async hardDeleteUser(userId: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    return { message: 'Xóa người dùng thành công' };
   }
 }
