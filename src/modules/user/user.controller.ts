@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -106,5 +107,19 @@ export class UserController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     return await this.userService.changePassword(userId, changePasswordDto);
+  }
+
+  // Hard delete current user account api
+  @Delete('me')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Xóa tài khoản người dùng' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Xóa tài khoản người dùng thành công',
+  })
+  async hardDeleteAccount(
+    @GetUser('id') userId: string,
+  ): Promise<{ message: string }> {
+    return await this.userService.hardDeleteAccount(userId);
   }
 }

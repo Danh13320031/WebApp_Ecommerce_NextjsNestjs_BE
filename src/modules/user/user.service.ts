@@ -160,4 +160,16 @@ export class UserService {
 
     return { message: 'Đổi mật khâu thành công' };
   }
+
+  async hardDeleteAccount(userId: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    return { message: 'Xóa tài khoản thành công' };
+  }
 }
