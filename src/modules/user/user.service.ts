@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserResponseDto } from './dto/user-response.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { SART_ROUNDS_SECURITY } from 'src/common/constants/security.constant';
 
 @Injectable()
 export class UserService {
@@ -117,5 +120,56 @@ export class UserService {
     });
 
     return updatedUser;
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword } = changePasswordDto;
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new NotFoundException('Mật khẩu hiện tại không hợp lệ');
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+
+    if (isSamePassword) {
+      throw new NotFoundException('Mật khẩu mới phải khác mật khâu hiện tại');
+    }
+
+    const hashNewPassword = await bcrypt.hash(
+      newPassword,
+      SART_ROUNDS_SECURITY,
+    );
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashNewPassword },
+    });
+
+    return { message: 'Đổi mật khâu thành công' };
+  }
+
+  async hardDeleteAccount(userId: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    return { message: 'Xóa tài khoản thành công' };
   }
 }
