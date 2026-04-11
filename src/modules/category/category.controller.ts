@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -24,6 +25,7 @@ import { CategoryService } from './category.service';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @ApiTags('Category - Danh mục')
 @Controller('categoríes')
@@ -98,5 +100,40 @@ export class CategoryController {
   })
   async findOne(@Param('id') id: string): Promise<CategoryResponseDto> {
     return await this.categoryService.findOne(id);
+  }
+
+  // Get category by slug api
+  @Get('slug/:slug')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lấy thông tin danh mục theo slug' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy thông tin danh mục thành công',
+    type: CategoryResponseDto,
+  })
+  async findOneBySlug(
+    @Param('slug') slug: string,
+  ): Promise<CategoryResponseDto> {
+    return await this.categoryService.findOneBySlug(slug);
+  }
+
+  // Update a category by id api
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ERole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Cập nhật thông tin danh mục theo ID' })
+  @ApiBody({ type: CreateCategoryDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cập nhật thông tin danh mục thành công',
+    type: CategoryResponseDto,
+  })
+  async updateCategory(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
+    return await this.categoryService.updateCategory(id, updateCategoryDto);
   }
 }
