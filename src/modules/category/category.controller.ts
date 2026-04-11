@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -135,5 +136,20 @@ export class CategoryController {
     @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<CategoryResponseDto> {
     return await this.categoryService.updateCategory(id, updateCategoryDto);
+  }
+
+  // Delete a category by id api
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ERole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Xóa danh mục theo ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Xóa danh mục thành công',
+  })
+  async hardDeleteCategory(@Param('id') id: string): Promise<{ message: string }> {
+    return await this.categoryService.hardDeleteCategory(id);
   }
 }

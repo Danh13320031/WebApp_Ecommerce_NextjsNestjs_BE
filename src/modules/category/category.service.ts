@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -168,6 +169,33 @@ export class CategoryService {
       updatedCategory,
       Number(updatedCategory._count.products),
     );
+  }
+
+  async hardDeleteCategory(id: string): Promise<{ message: string }> {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Danh mục không tìm thấy: ' + id);
+    }
+
+    if (category._count.products > 0) {
+      throw new BadRequestException(
+        'Không thể xóa danh mục vì vẫn còn sản phẩm liên quan',
+      );
+    }
+
+    await this.prisma.category.delete({
+      where: { id },
+    });
+
+    return { message: 'Xóa danh mục thành công' };
   }
 
   private formatCategoryResponse(
