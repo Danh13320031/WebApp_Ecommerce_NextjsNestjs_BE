@@ -99,4 +99,19 @@ export class CategoryController {
   async findOne(@Param('id') id: string): Promise<CategoryResponseDto> {
     return await this.categoryService.findOne(id);
   }
+
+  // Get category by slug api
+  @Get('slug/:slug')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lấy thông tin danh mục theo slug' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy thông tin danh mục thành công',
+    type: CategoryResponseDto,
+  })
+  async findOneBySlug(
+    @Param('slug') slug: string,
+  ): Promise<CategoryResponseDto> {
+    return await this.categoryService.findOneBySlug(slug);
+  }
 }

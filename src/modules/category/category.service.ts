@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Category, Prisma } from '@prisma/client';
 import convertTextToSlug from 'src/common/helpers/text-to-slug.helper';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -93,7 +93,27 @@ export class CategoryService {
     });
 
     if (!category) {
-      throw new Error('Danh mục không tìm thấy: ' + id);
+      throw new NotFoundException('Danh mục không tìm thấy: ' + id);
+    }
+
+    return this.formatCategoryResponse(
+      category,
+      Number(category._count.products),
+    );
+  }
+
+  async findOneBySlug(slug: string): Promise<CategoryResponseDto> {
+    const category = await this.prisma.category.findUnique({
+      where: { slug },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Danh mục không tìm thấy: ' + slug);
     }
 
     return this.formatCategoryResponse(
