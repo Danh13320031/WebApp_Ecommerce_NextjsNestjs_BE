@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -11,7 +13,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiResponse,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
 import { ERole } from '@prisma/client';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -20,6 +22,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CategoryService } from './category.service';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { QueryCategoryDto } from './dto/query-category.dto';
 
 @ApiTags('Category - Danh mục')
 @Controller('categoríes')
@@ -43,5 +46,43 @@ export class CategoryController {
     @Body() createCategoryDto: CreateCategoryDto,
   ): Promise<CategoryResponseDto> {
     return await this.categoryService.createCategory(createCategoryDto);
+  }
+
+  // Get all categories api
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lấy danh sách danh mục' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy danh sách danh mục thành công',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/CategoryResponseDto' },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            totalPages: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async findAll(@Query() queryDto: QueryCategoryDto): Promise<{
+    data: CategoryResponseDto[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    return await this.categoryService.findAll(queryDto);
   }
 }
