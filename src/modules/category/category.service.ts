@@ -71,7 +71,7 @@ export class CategoryService {
 
     return {
       data: categories.map((category) =>
-        this.formatCategoryResponse(category, category._count.products),
+        this.formatCategoryResponse(category, Number(category._count.products)),
       ),
       meta: {
         total,
@@ -80,6 +80,26 @@ export class CategoryService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async findOne(id: string): Promise<CategoryResponseDto> {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new Error('Danh mục không tìm thấy: ' + id);
+    }
+
+    return this.formatCategoryResponse(
+      category,
+      Number(category._count.products),
+    );
   }
 
   private formatCategoryResponse(

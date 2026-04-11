@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -13,7 +14,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiResponse,
-  ApiTags
+  ApiTags,
 } from '@nestjs/swagger';
 import { ERole } from '@prisma/client';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -84,5 +85,18 @@ export class CategoryController {
     };
   }> {
     return await this.categoryService.findAll(queryDto);
+  }
+
+  // Get category by id api
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lấy thông tin danh mục theo ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy thông tin danh mục thành công',
+    type: CategoryResponseDto,
+  })
+  async findOne(@Param('id') id: string): Promise<CategoryResponseDto> {
+    return await this.categoryService.findOne(id);
   }
 }
