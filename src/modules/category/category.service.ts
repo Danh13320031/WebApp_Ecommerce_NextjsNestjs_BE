@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Category, Prisma } from '@prisma/client';
 import convertTextToSlug from 'src/common/helpers/text-to-slug.helper';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -119,6 +124,49 @@ export class CategoryService {
     return this.formatCategoryResponse(
       category,
       Number(category._count.products),
+    );
+  }
+
+  async updateCategory(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
+    const existingCategory = await this.prisma.category.findUnique({
+      where: { id },
+    });
+
+    if (!existingCategory) {
+      throw new NotFoundException('Danh mục không tìm thấy: ' + id);
+    }
+
+    if (
+      updateCategoryDto.slug &&
+      updateCategoryDto.slug !== existingCategory.slug
+    ) {
+      const slugTaken = await this.prisma.category.findUnique({
+        where: { slug: updateCategoryDto.slug },
+      });
+
+      if (slugTaken) {
+        throw new ConflictException(
+          `Danh mục cùng slug "${updateCategoryDto.slug}" đã được sử dụng`,
+        );
+      }
+    }
+
+    const updatedCategory = await this.prisma.category.update({
+      where: { id },
+      data: updateCategoryDto,
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    return this.formatCategoryResponse(
+      updatedCategory,
+      Number(updatedCategory._count.products),
     );
   }
 
