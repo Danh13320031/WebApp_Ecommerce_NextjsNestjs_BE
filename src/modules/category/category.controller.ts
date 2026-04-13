@@ -29,7 +29,7 @@ import { QueryCategoryDto } from './dto/query-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @ApiTags('Category - Danh mục')
-@Controller('categoríes')
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
@@ -149,7 +149,9 @@ export class CategoryController {
     status: HttpStatus.OK,
     description: 'Xóa danh mục thành công',
   })
-  async hardDeleteCategory(@Param('id') id: string): Promise<{ message: string }> {
+  async hardDeleteCategory(
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
     return await this.categoryService.hardDeleteCategory(id);
   }
 }
