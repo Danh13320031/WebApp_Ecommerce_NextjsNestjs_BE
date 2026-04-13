@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -77,7 +78,7 @@ export class ProductController {
       },
     },
   })
-  async findAll(@Query() queryProductDto: QueryProductDto): Promise<{
+  async findAllProduct(@Query() queryProductDto: QueryProductDto): Promise<{
     data: ProductResponseDto[];
     meta: {
       total: number;
@@ -86,7 +87,7 @@ export class ProductController {
       totalPages: number;
     };
   }> {
-    return await this.productService.findAll(queryProductDto);
+    return await this.productService.findAllProduct(queryProductDto);
   }
 
   // Get product by id api
@@ -99,7 +100,7 @@ export class ProductController {
     type: ProductResponseDto,
   })
   async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
-    return await this.productService.findOne(id);
+    return await this.productService.findOneProduct(id);
   }
 
   // Update product by id api
@@ -147,10 +148,27 @@ export class ProductController {
     description: 'Cập nhật số lượng tồn kho của sản phẩm thành cong',
     type: ProductResponseDto,
   })
-  async updateStock(
+  async updateProductStock(
     @Param('id') id: string,
     @Body('quantity') quantity: number,
   ): Promise<ProductResponseDto> {
-    return await this.productService.updateStock(id, quantity);
+    return await this.productService.updateProductStock(id, quantity);
+  }
+
+  // Hard delete product by id api
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ERole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Xóa sản phẩm theo ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Xóa sản phẩm thành công',
+  })
+  async hardDeleteProduct(
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
+    return await this.productService.hardDeleteProduct(id);
   }
 }

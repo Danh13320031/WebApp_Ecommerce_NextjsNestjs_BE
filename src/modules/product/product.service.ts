@@ -45,7 +45,7 @@ export class ProductService {
     return this.formatProductResponse(product);
   }
 
-  async findAll(queryProductDto: QueryProductDto): Promise<{
+  async findAllProduct(queryProductDto: QueryProductDto): Promise<{
     data: ProductResponseDto[];
     meta: { total: number; page: number; limit: number; totalPages: number };
   }> {
@@ -93,7 +93,7 @@ export class ProductService {
     };
   }
 
-  async findOne(id: string): Promise<ProductResponseDto> {
+  async findOneProduct(id: string): Promise<ProductResponseDto> {
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: { category: true },
@@ -147,7 +147,10 @@ export class ProductService {
     return this.formatProductResponse(updatedProduct);
   }
 
-  async updateStock(id: string, quantity: number): Promise<ProductResponseDto> {
+  async updateProductStock(
+    id: string,
+    quantity: number,
+  ): Promise<ProductResponseDto> {
     const product = await this.prisma.product.findUnique({
       where: { id },
     });
@@ -171,6 +174,30 @@ export class ProductService {
     });
 
     return this.formatProductResponse(updatedProduct);
+  }
+
+  async hardDeleteProduct(id: string): Promise<{ message: string }> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: {
+        orderItems: true,
+        cartItems: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Sản phẩm khôn tìm thấy: ' + id);
+    }
+
+    if (product.orderItems.length > 0) {
+      throw new BadRequestException(
+        'Không thể xóa sản phẩm này vì đã có đơn hàng liên quan.',
+      );
+    }
+
+    await this.prisma.product.delete({ where: { id } });
+
+    return { message: 'Xóa sản phẩm tiong' };
   }
 
   private formatProductResponse(
