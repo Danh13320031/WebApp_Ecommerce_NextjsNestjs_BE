@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -19,6 +21,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
+import { QueryProductDto } from './dto/query-product.dto';
 import { ProductService } from './product.service';
 
 @ApiTags('Product - Sản phẩm')
@@ -43,5 +46,43 @@ export class ProductController {
     @Body() createProductDto: CreateProductDto,
   ): Promise<ProductResponseDto> {
     return await this.productService.createProduct(createProductDto);
+  }
+
+  // Get product list api
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lấy danh sách sản phẩm' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy danh sách sản phẩm thành công',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#components/schemas/ProductResponseDto' },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            totalPages: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async findAll(@Query() queryProductDto: QueryProductDto): Promise<{
+    data: ProductResponseDto[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    return await this.productService.findAll(queryProductDto);
   }
 }
