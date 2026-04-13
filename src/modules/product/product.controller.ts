@@ -121,4 +121,36 @@ export class ProductController {
   ): Promise<ProductResponseDto> {
     return await this.productService.updateProduct(id, updateProductDto);
   }
+
+  // Update product stock by id api
+  @Patch(':id/stock')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ERole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Cập nhật số lượng tồn kho của sản phẩm theo ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        quantity: {
+          type: 'number',
+          description: 'Tông số lượng sản phẩm trong kho',
+          example: 50,
+        },
+      },
+      required: ['quantity'],
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cập nhật số lượng tồn kho của sản phẩm thành cong',
+    type: ProductResponseDto,
+  })
+  async updateStock(
+    @Param('id') id: string,
+    @Body('quantity') quantity: number,
+  ): Promise<ProductResponseDto> {
+    return await this.productService.updateStock(id, quantity);
+  }
 }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -140,6 +141,32 @@ export class ProductService {
     const updatedProduct = await this.prisma.product.update({
       where: { id },
       data: updatedData,
+      include: { category: true },
+    });
+
+    return this.formatProductResponse(updatedProduct);
+  }
+
+  async updateStock(id: string, quantity: number): Promise<ProductResponseDto> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Sản phẩm khôn tìm thấy: ' + id);
+    }
+
+    const newStock = product.stock + quantity;
+
+    if (newStock < 0) {
+      throw new BadRequestException(
+        `Không thể cập nhật số lượng tồn kho. Số lượng hiện tại: ${product.stock}, số lượng cần cập nhật: ${quantity}.`,
+      );
+    }
+
+    const updatedProduct = await this.prisma.product.update({
+      where: { id },
+      data: { stock: newStock },
       include: { category: true },
     });
 
