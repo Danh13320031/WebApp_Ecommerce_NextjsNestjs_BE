@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -23,6 +24,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductService } from './product.service';
 
 @ApiTags('Product - Sản phẩm')
@@ -98,5 +100,25 @@ export class ProductController {
   })
   async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
     return await this.productService.findOne(id);
+  }
+
+  // Update product by id api
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ERole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Cập nhật thông tin sản phẩm theo ID' })
+  @ApiBody({ type: UpdateProductDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cập nhật thông tin sản phẩm thành công',
+    type: ProductResponseDto,
+  })
+  async updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ): Promise<ProductResponseDto> {
+    return await this.productService.updateProduct(id, updateProductDto);
   }
 }
