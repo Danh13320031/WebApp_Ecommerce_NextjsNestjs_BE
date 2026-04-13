@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -84,5 +85,18 @@ export class ProductController {
     };
   }> {
     return await this.productService.findAll(queryProductDto);
+  }
+
+  // Get product by id api
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lấy thông tin sản phẩm theo ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy thông tin sản phẩm thành công',
+    type: ProductResponseDto,
+  })
+  async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
+    return await this.productService.findOne(id);
   }
 }

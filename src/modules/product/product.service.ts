@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
@@ -85,6 +89,19 @@ export class ProductService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async findOne(id: string): Promise<ProductResponseDto> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: { category: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Sản phẩm khôn tìm thấy: ' + id);
+    }
+
+    return this.formatProductResponse(product);
   }
 
   private formatProductResponse(
