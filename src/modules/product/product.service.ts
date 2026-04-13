@@ -9,6 +9,7 @@ import { ProductResponseDto } from './dto/product-response.dto';
 import { Category, Prisma, Product } from '@prisma/client';
 import convertTextToSlug from 'src/common/helpers/text-to-slug.helper';
 import { QueryProductDto } from './dto/query-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -102,6 +103,47 @@ export class ProductService {
     }
 
     return this.formatProductResponse(product);
+  }
+
+  async updateProduct(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<ProductResponseDto> {
+    const existingProduct = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!existingProduct) {
+      throw new NotFoundException('Sản phẩm khôn tìm thấy: ' + id);
+    }
+
+    if (updateProductDto.sku && updateProductDto.sku !== existingProduct.sku) {
+      const skuTaken = await this.prisma.product.findUnique({
+        where: { sku: updateProductDto.sku },
+      });
+
+      if (skuTaken) {
+        throw new ConflictException(
+          `SKU của sản phẩm ${updateProductDto.sku} đã tồn tại. Vui lòng chon một SKU khác.`,
+        );
+      }
+    }
+
+    const updatedData: any = {
+      ...updateProductDto,
+    };
+
+    if (updateProductDto.price && updateProductDto.price !== undefined) {
+      updatedData.price = new Prisma.Decimal(updateProductDto.price);
+    }
+
+    const updatedProduct = await this.prisma.product.update({
+      where: { id },
+      data: updatedData,
+      include: { category: true },
+    });
+
+    return this.formatProductResponse(updatedProduct);
   }
 
   private formatProductResponse(
