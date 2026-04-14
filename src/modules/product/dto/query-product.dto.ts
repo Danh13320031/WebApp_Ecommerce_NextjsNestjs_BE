@@ -13,6 +13,7 @@ export class QueryProductDto {
   @ApiPropertyOptional({
     description: 'Bộ lọc theo danh mục sản phẩm',
     example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
   })
   @IsOptional()
   @IsString({ message: 'Danh mục phải là một chuỗi' })
@@ -22,6 +23,7 @@ export class QueryProductDto {
   @ApiProperty({
     description: 'Trạng thái hoạt động của sản phẩm',
     example: true,
+    required: false,
   })
   @Transform(({ value }) => {
     if (value === 'true' || value === true) return true;
@@ -38,6 +40,7 @@ export class QueryProductDto {
   @ApiProperty({
     description: 'Từ khóa tìm kiếm sản phẩm',
     example: 'Tai nghe Bluetooth Sony WH-1000XM4',
+    required: false,
   })
   @IsOptional()
   @IsString({ message: 'Từ khóa tìm kiếm sản phẩm phải là một chuỗi' })
@@ -48,6 +51,7 @@ export class QueryProductDto {
     example: 1,
     default: 1,
     minimum: 1,
+    required: false,
   })
   @Type(() => Number)
   @IsNumber({}, { message: 'Số trang phải là một số' })
@@ -60,6 +64,7 @@ export class QueryProductDto {
     example: 10,
     default: 10,
     minimum: 1,
+    required: false,
   })
   @Type(() => Number)
   @IsNumber({}, { message: 'Số lượng bản ghi trên mỗi trang phải là một số' })
