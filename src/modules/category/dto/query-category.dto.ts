@@ -12,6 +12,7 @@ export class QueryCategoryDto {
   @ApiProperty({
     description: 'Trạng thái hoạt động của danh mục',
     example: true,
+    required: false,
   })
   @Transform(({ value }) => {
     if (value === 'true' || value === true) return true;
@@ -28,6 +29,7 @@ export class QueryCategoryDto {
   @ApiProperty({
     description: 'Từ khóa tìm kiếm danh mục',
     example: 'Điện thoại',
+    required: false,
   })
   @IsOptional()
   @IsString({ message: 'Từ khóa tìm kiếm danh mục phải là một chuỗi' })
@@ -36,6 +38,7 @@ export class QueryCategoryDto {
   @ApiProperty({
     description: 'Số trang để phân trang',
     example: 1,
+    required: false,
     default: 1,
     minimum: 1,
   })
@@ -48,6 +51,7 @@ export class QueryCategoryDto {
   @ApiPropertyOptional({
     description: 'Số lượng bản ghi trên mỗi trang',
     example: 10,
+    required: false,
     default: 10,
     minimum: 1,
   })
