@@ -153,7 +153,7 @@ export class OrderResponseDto {
   })
   @IsNotEmpty({ message: 'Trạng thái đơn hàng không được để trống' })
   @IsString({ message: 'Trạng thái đơn hàng phải là một chuỗi' })
-  status!: string;
+  status!: EOrderStatus;
 
   @ApiProperty({
     description: 'Tống giá trị đơn hàng',

@@ -3,13 +3,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EOrderStatus, Order, OrderItem, Product, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {
   OrderApiResponseDto,
   OrderResponseDto,
 } from './dto/order-response.dto';
-import { EOrderStatus, Order, OrderItem, Product, User } from '@prisma/client';
+import { QueryOrderDto } from './dto/query-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -90,6 +91,68 @@ export class OrderService {
     });
 
     return this.wrap(order);
+  }
+
+  async findAllOrderForAdmin(queryDto: QueryOrderDto): Promise<{
+    data: OrderResponseDto[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const { page = 1, limit = 10, status, search } = queryDto;
+    const skip = (page - 1) * limit;
+    const where: any = {};
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        {
+          id: {
+            contains: search,
+            mode: 'insensitive',
+          },
+          orderNumber: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders.map((order) => this.map(order)),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   private wrap(
