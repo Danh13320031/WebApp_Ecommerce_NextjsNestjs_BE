@@ -1,0 +1,139 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import {
+  OrderApiResponseDto,
+  OrderResponseDto,
+} from './dto/order-response.dto';
+import { EOrderStatus, Order, OrderItem, Product, User } from '@prisma/client';
+
+@Injectable()
+export class OrderService {
+  constructor(private prisma: PrismaService) {}
+
+  async createOrder(
+    userId: string,
+    createOrderDto: CreateOrderDto,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const { items, shippingAddress } = createOrderDto;
+
+    for (const item of items) {
+      const product = await this.prisma.product.findUnique({
+        where: { id: item.productId },
+      });
+
+      if (!product) {
+        throw new NotFoundException(
+          `Không tìm thấy sản phẩm: ${item.productId}`,
+        );
+      }
+
+      if (product.stock < item.quantity) {
+        throw new BadRequestException(
+          `Sản phẩm ${product.name} hiện không còn trong kho. Lượng hàng tồn kho hiện có: ${product.stock}. Số lượng yêu cầu: ${item.quantity}.`,
+        );
+      }
+    }
+
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+
+    const latestCart = await this.prisma.cart.findFirst({
+      where: { userId, checkedOut: false },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const order = await this.prisma.$transaction(async (tx) => {
+      const newOrder = await tx.order.create({
+        data: {
+          userId,
+          status: EOrderStatus.PENDING,
+          totalAmount: total,
+          shippingAddress,
+          cartId: latestCart?.id,
+          orderItems: {
+            create: items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+        },
+      });
+
+      for (const item of items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+      }
+
+      return newOrder;
+    });
+
+    return this.wrap(order);
+  }
+
+  private wrap(
+    order: Order & {
+      user: User;
+      orderItems: (OrderItem & { product: Product })[];
+    },
+  ): OrderApiResponseDto<OrderResponseDto> {
+    return {
+      success: true,
+      message: 'Đơn hàng được tạo thành công',
+      data: this.map(order),
+    };
+  }
+
+  private map(
+    order: Order & {
+      user: User;
+      orderItems: (OrderItem & { product: Product })[];
+    },
+  ): OrderResponseDto {
+    return {
+      id: order.id,
+      userId: order.userId,
+      status: order.status,
+      total: Number(order.totalAmount.toFixed(2)),
+      shippingAddress: order.shippingAddress ?? '',
+      items: order.orderItems.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.product.name,
+        quantity: item.quantity,
+        price: Number(item.price.toFixed(2)),
+        subtotal: Number((Number(item.price) * item.quantity).toFixed(2)),
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+      })),
+      ...(order.user && {
+        userEmail: order.user.email,
+        userName:
+          `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim(),
+      }),
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    };
+  }
+}

@@ -2,7 +2,10 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { PORT_APP } from './common/constants/app.constant';
+import {
+  API_VERSION_PREFIX_APP,
+  PORT_APP,
+} from './common/constants/app.constant';
 import {
   CORS_ALLOWED_HEADERS_SECURITY,
   CORS_METHODS_SECURITY,
@@ -12,7 +15,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Project description
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix(API_VERSION_PREFIX_APP);
 
   // Set global pipe
   app.useGlobalPipes(
