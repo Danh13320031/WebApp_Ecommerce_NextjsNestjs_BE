@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -13,6 +14,7 @@ import {
   ApiBody,
   ApiForbiddenResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -167,5 +169,27 @@ export class OrderController {
     };
   }> {
     return await this.orderService.findAllOrder(userId, queryDto);
+  }
+
+  // Admin get a order by id
+  @Get('admin/:id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(ERole.ADMIN)
+  @RelaxedThrottler()
+  @ApiOperation({ summary: 'Lấy đơn hàng theo id cho admin' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy đơn hàng thành công',
+    type: OrderApiResponseDto,
+  })
+  async findOneOrderForAdmin(
+    @Param('id') id: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    return await this.orderService.findOneOrderForAdmin(id);
   }
 }

@@ -8,7 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {
   OrderApiResponseDto,
-  OrderResponseDto
+  OrderResponseDto,
 } from './dto/order-response.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
 
@@ -218,6 +218,35 @@ export class OrderService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async findOneOrderForAdmin(
+    id: string,
+    userId?: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id };
+
+    if (userId) {
+      where.userId = userId;
+    }
+
+    const order = await this.prisma.order.findFirst({
+      where,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+
+    return this.wrap(order);
   }
 
   private wrap(
