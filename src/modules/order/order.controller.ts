@@ -222,7 +222,7 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @Roles(ERole.ADMIN)
   @RelaxedThrottler()
-  @ApiOperation({ summary: 'Chiềnh sách đơn hàng theo id cho admin' })
+  @ApiOperation({ summary: 'Chình sửa đơn hàng theo id cho admin' })
   @ApiParam({
     name: 'id',
     required: true,
@@ -231,7 +231,7 @@ export class OrderController {
   @ApiBody({ type: UpdateOrderDto })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Chiềnh sách đơn hàng thanh cong',
+    description: 'Chình sửa đơn hàng thành công',
     type: OrderApiResponseDto,
   })
   async updateOrderForAdmin(
@@ -239,5 +239,31 @@ export class OrderController {
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     return await this.orderService.updateOrderForAdmin(id, updateOrderDto);
+  }
+
+  // User update order api
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @RelaxedThrottler()
+  @ApiOperation({
+    summary: 'Chỉnh sửa đơn hàng theo id cho người dùng hiện tại',
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: String,
+  })
+  @ApiBody({ type: UpdateOrderDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Chiềnh sách đơn hàng thành công',
+    type: OrderApiResponseDto,
+  })
+  async updateOrder(
+    @Param('id') id: string,
+    @GetUser('id') userId: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    return await this.orderService.updateOrder(id, userId, updateOrderDto);
   }
 }
