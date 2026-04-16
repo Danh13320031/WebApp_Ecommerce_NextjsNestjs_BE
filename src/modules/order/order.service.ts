@@ -279,7 +279,34 @@ export class OrderService {
     updateOrderDto: UpdateOrderDto,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     const where: any = { id };
+    const order = await this.prisma.order.findFirst({ where });
 
+    if (!order) {
+      throw new NotFoundException(`Không tìm thấy đơn hàng ${id}`);
+    }
+
+    const updatedOrder = await this.prisma.order.update({
+      where: { id: order.id },
+      data: updateOrderDto,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    return this.wrap(updatedOrder);
+  }
+
+  async updateOrder(
+    id: string,
+    userId: string,
+    updateOrderDto: UpdateOrderDto,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id, userId };
     const order = await this.prisma.order.findFirst({ where });
 
     if (!order) {
