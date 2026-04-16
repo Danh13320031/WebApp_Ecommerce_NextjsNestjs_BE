@@ -192,4 +192,26 @@ export class OrderController {
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     return await this.orderService.findOneOrderForAdmin(id);
   }
+
+  // User get a order by id
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @RelaxedThrottler()
+  @ApiOperation({ summary: 'Lấy đơn hàng theo id cho người dùng hiện tại' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy đơn hàng thành công',
+    type: OrderApiResponseDto,
+  })
+  async findOneOrder(
+    @GetUser('id') userId: string,
+    @Param('id') id: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    return await this.orderService.findOneOrder(userId, id);
+  }
 }
