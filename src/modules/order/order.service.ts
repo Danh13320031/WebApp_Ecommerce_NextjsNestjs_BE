@@ -11,6 +11,7 @@ import {
   OrderResponseDto,
 } from './dto/order-response.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -271,6 +272,34 @@ export class OrderService {
     }
 
     return this.wrap(order);
+  }
+
+  async updateOrderForAdmin(
+    id: string,
+    updateOrderDto: UpdateOrderDto,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id };
+
+    const order = await this.prisma.order.findFirst({ where });
+
+    if (!order) {
+      throw new NotFoundException(`Không tìm thấy đơn hàng ${id}`);
+    }
+
+    const updatedOrder = await this.prisma.order.update({
+      where: { id: order.id },
+      data: updateOrderDto,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    return this.wrap(updatedOrder);
   }
 
   private wrap(
