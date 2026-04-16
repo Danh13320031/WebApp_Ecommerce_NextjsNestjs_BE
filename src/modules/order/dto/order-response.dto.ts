@@ -5,6 +5,7 @@ import {
   IsArray,
   IsBoolean,
   IsDate,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -152,7 +153,7 @@ export class OrderResponseDto {
     required: true,
   })
   @IsNotEmpty({ message: 'Trạng thái đơn hàng không được để trống' })
-  @IsString({ message: 'Trạng thái đơn hàng phải là một chuỗi' })
+  @IsEnum(EOrderStatus, { message: 'Trạng thái đơn hàng không hợp lệ' })
   status!: EOrderStatus;
 
   @ApiProperty({

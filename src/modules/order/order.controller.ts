@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -35,6 +36,7 @@ import {
   OrderResponseDto,
 } from './dto/order-response.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderService } from './order.service';
 
 @ApiTags('Order - Đơn hàng')
@@ -213,5 +215,29 @@ export class OrderController {
     @Param('id') id: string,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     return await this.orderService.findOneOrder(userId, id);
+  }
+
+  // Admin update order api
+  @Patch('admin/:id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(ERole.ADMIN)
+  @RelaxedThrottler()
+  @ApiOperation({ summary: 'Chiềnh sách đơn hàng theo id cho admin' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: String,
+  })
+  @ApiBody({ type: UpdateOrderDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Chiềnh sách đơn hàng thanh cong',
+    type: OrderApiResponseDto,
+  })
+  async updateOrderForAdmin(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    return await this.orderService.updateOrderForAdmin(id, updateOrderDto);
   }
 }

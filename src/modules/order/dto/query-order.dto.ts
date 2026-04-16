@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EOrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryOrderDto {
   @ApiProperty({
@@ -10,7 +10,9 @@ export class QueryOrderDto {
     required: false,
   })
   @IsOptional()
-  @IsString({ message: 'Trạng thái hoạt động của đơn hàng phải là một chuỗi' })
+  @IsEnum(EOrderStatus, {
+    message: 'Trạng thái hoạt động của đơn hàng không hợp lệ',
+  })
   status?: EOrderStatus;
 
   @ApiProperty({
