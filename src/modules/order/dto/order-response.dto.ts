@@ -209,3 +209,35 @@ export class OrderResponseDto {
   @IsDate({ message: 'Thời gian cập nhật đơn hàng phai la mot ngay' })
   updatedAt!: Date;
 }
+
+// export class PaginatedOrderResponseDto {
+//   @ApiProperty({
+//     description: 'Danh sách đơn hàng',
+//     required: true,
+//     type: [OrderResponseDto],
+//   })
+//   data!: OrderResponseDto[];
+
+//   @ApiProperty({
+//     description: 'Tống số đơn hàng',
+//     example: 10,
+//     required: true,
+//   })
+//   @Type(() => Number)
+//   total!: number;
+
+//   @ApiProperty({
+//     description: 'Trang hiện tại',
+//     example: 1,
+//     required: true,
+//   })
+//   page!: number;
+
+//   @ApiProperty({
+//     description: 'Số lượng đơn hàng trong trang',
+//     example: 10,
+//     required: true,
+//   })
+//   @Type(() => Number)
+//   limit!: number;
+// }
