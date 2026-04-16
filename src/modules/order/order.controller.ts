@@ -121,4 +121,51 @@ export class OrderController {
   }> {
     return await this.orderService.findAllOrderForAdmin(queryDto);
   }
+
+  // User get own orders api
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @RelaxedThrottler()
+  @ApiOperation({ summary: 'Lấy danh sách đơn hàng của người dùng hiện tại' })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy danh sách đơn hàng thanh cong',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            $ref: getSchemaPath(OrderResponseDto),
+          },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            totalPages: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async findAllOrder(
+    @GetUser('id') userId: string,
+    @Query() queryDto: QueryOrderDto,
+  ): Promise<{
+    data: OrderResponseDto[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    return await this.orderService.findAllOrder(userId, queryDto);
+  }
 }
