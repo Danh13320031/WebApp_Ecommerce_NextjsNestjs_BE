@@ -222,6 +222,30 @@ export class OrderService {
 
   async findOneOrderForAdmin(
     id: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id };
+
+    const order = await this.prisma.order.findFirst({
+      where,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+
+    return this.wrap(order);
+  }
+
+  async findOneOrder(
+    id: string,
     userId?: string,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     const where: any = { id };
