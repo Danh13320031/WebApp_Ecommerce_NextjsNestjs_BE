@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -265,5 +266,27 @@ export class OrderController {
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     return await this.orderService.updateOrder(id, userId, updateOrderDto);
+  }
+
+  // Admin cancel order api
+  @Delete('admin/:id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(ERole.ADMIN)
+  @ModerateThrottler()
+  @ApiOperation({ summary: 'Hủy đơn hàng theo id cho admin' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Hủy đơn hàng thành cong',
+    type: OrderApiResponseDto,
+  })
+  async cancelOrderForAdmin(
+    @Param('id') id: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    return await this.orderService.cancelOrderForAdmin(id);
   }
 }
