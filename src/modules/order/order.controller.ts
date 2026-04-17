@@ -215,7 +215,7 @@ export class OrderController {
     @GetUser('id') userId: string,
     @Param('id') id: string,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
-    return await this.orderService.findOneOrder(userId, id);
+    return await this.orderService.findOneOrder(id, userId);
   }
 
   // Admin update order api
@@ -288,5 +288,27 @@ export class OrderController {
     @Param('id') id: string,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
     return await this.orderService.cancelOrderForAdmin(id);
+  }
+
+  // User cancel order api
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @ModerateThrottler()
+  @ApiOperation({ summary: 'Hủy đơn hàng theo id cho người dùng hiện tại' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Hủy đơn hàng thành cong',
+    type: OrderApiResponseDto,
+  })
+  async cancelOrder(
+    @GetUser('id') userId: string,
+    @Param('id') id: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    return await this.orderService.cancelOrder(userId, id);
   }
 }

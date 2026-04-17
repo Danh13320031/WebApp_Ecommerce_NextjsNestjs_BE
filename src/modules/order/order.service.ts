@@ -385,6 +385,41 @@ export class OrderService {
     return this.wrap(cancelledOrder);
   }
 
+  async cancelOrder(
+    userId: string,
+    id: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id, userId };
+    const order = await this.prisma.order.findFirst({ where });
+
+    if (!order) {
+      throw new NotFoundException(`Không tìm thấy đơn hàng ${id}`);
+    }
+
+    if (order.status !== EOrderStatus.PENDING) {
+      throw new BadRequestException(
+        'Chỉ có thể xóa đơn hàng với trạng thái PENDING',
+      );
+    }
+
+    const cancelledOrder = await this.prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: EOrderStatus.CANCELLED,
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    return this.wrap(cancelledOrder);
+  }
+
   private wrap(
     order: Order & {
       user: User;
