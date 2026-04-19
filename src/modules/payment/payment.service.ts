@@ -148,6 +148,23 @@ export class PaymentService {
     };
   }
 
+  async findAllPayment(userId: string): Promise<{
+    success: boolean;
+    data: PaymentResponseDto[];
+    message: string;
+  }> {
+    const payments = await this.prisma.payment.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      success: true,
+      data: payments.map((payment) => this.formatPaymentResponse(payment)),
+      message: 'Thanh toán hoàn tất',
+    };
+  }
+
   private formatPaymentResponse(payment: Payment): PaymentResponseDto {
     return {
       id: payment.id,

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -21,6 +22,7 @@ import {
 import {
   CreatePaymentIntentApiResponseDto,
   PaymentApiResponseDto,
+  PaymentResponseDto,
 } from './dto/payment-response.dto';
 import { PaymentService } from './payment.service';
 
@@ -71,5 +73,25 @@ export class PaymentController {
       userId,
       createPaymentConfirmationDto,
     );
+  }
+
+  // Get all payment api
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Lay danh sách thanh toán',
+    description: 'Lay danh sách thanh toán',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lay danh sách thanh toán thanh cong',
+    type: PaymentApiResponseDto,
+  })
+  async findAllPayment(@GetUser('id') userId: string): Promise<{
+    success: boolean;
+    data: PaymentResponseDto[];
+    message: string;
+  }> {
+    return await this.paymentService.findAllPayment(userId);
   }
 }
