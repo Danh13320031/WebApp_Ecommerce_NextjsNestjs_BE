@@ -3,15 +3,22 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EPaymentStatus } from '@prisma/client';
+import { EOrderStatus, EPaymentStatus, Payment, Prisma } from '@prisma/client';
 import {
   STRIPE_API_VERSION_SECURITY,
   STRIPE_SECRET_SECURITY,
 } from 'src/common/constants/security.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Stripe from 'stripe';
-import { CreatePaymentIntentDto } from './dto/create-payment.dto';
-import { CreatePaymentIntentApiResponseDto } from './dto/payment-response.dto';
+import {
+  CreatePaymentConfirmationDto,
+  CreatePaymentIntentDto,
+} from './dto/create-payment.dto';
+import {
+  CreatePaymentIntentApiResponseDto,
+  PaymentApiResponseDto,
+  PaymentResponseDto,
+} from './dto/payment-response.dto';
 
 @Injectable()
 export class PaymentService {
@@ -74,6 +81,85 @@ export class PaymentService {
         paymentId: payment.id,
       },
       message: 'Thanh toán thành công',
+    };
+  }
+
+  async confirmPayment(
+    userId: string,
+    createPaymentConfirmationDto: CreatePaymentConfirmationDto,
+  ): Promise<PaymentApiResponseDto> {
+    const { paymentIntentId, orderId } = createPaymentConfirmationDto;
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        orderId: orderId,
+        userId: userId,
+        transactionId: paymentIntentId,
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Không tìm thấy hoạt động thanh toán');
+    }
+
+    if (payment.status === EPaymentStatus.COMPLETED) {
+      throw new BadRequestException('Hoạt động thanh toán được hoàn tất');
+    }
+
+    const paymentItent =
+      await this.stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentItent.status !== 'succeeded') {
+      throw new BadRequestException('Thanh toán khóng được hoàn tất');
+    }
+
+    const [updatedPayment] = await this.prisma.$transaction([
+      this.prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: EPaymentStatus.COMPLETED,
+        },
+      }),
+
+      this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: EOrderStatus.PROCESSING,
+        },
+      }),
+    ]);
+
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId },
+    });
+
+    if (order?.cartId) {
+      await this.prisma.cart.update({
+        where: { id: order.cartId },
+        data: {
+          checkedOut: true,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      data: this.formatPaymentResponse(updatedPayment),
+      message: 'Thanh toán hoàn tất',
+    };
+  }
+
+  private formatPaymentResponse(payment: Payment): PaymentResponseDto {
+    return {
+      id: payment.id,
+      orderId: payment.orderId,
+      userId: payment.userId,
+      amount: payment.amount.toNumber(),
+      currency: payment.currency,
+      status: payment.status,
+      paymentMethod: payment.paymentMethod,
+      transactionId: payment.transactionId,
+      createdAt: payment.createdAt,
+      updatedAt: payment.updatedAt,
     };
   }
 }
