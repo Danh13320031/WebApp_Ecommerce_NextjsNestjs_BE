@@ -49,3 +49,24 @@ export class CreatePaymentIntentDto {
   @IsString({ message: 'Mô tả phải là một chuỗi' })
   description?: string;
 }
+
+export class CreatePaymentConfirmationDto {
+  @ApiProperty({
+    description: 'ID thanh toán',
+    example: 'pi_3Nv4P8X2pP2pP2pP2pP2pP2p',
+    required: true,
+  })
+  @IsNotEmpty({ message: 'ID thanh toán không được bỏ trống' })
+  @IsString({ message: 'ID thanh toán phải là một chuỗi' })
+  paymentIntentId!: string;
+
+  @ApiProperty({
+    description: 'ID đơn hàng',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: true,
+  })
+  @IsNotEmpty({ message: 'ID đơn hàng không được bỏ trống' })
+  @IsString({ message: 'ID đơn hàng phải là một chuỗi' })
+  @IsUUID(4, { message: 'ID đơn hàng phải là một UUID phiên bản 4' })
+  orderId!: string;
+}
