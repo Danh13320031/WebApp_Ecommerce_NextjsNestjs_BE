@@ -86,7 +86,7 @@ export class PaymentController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Lay danh sách thanh toán thanh cong',
+    description: 'Lay danh sách thanh toán thành công',
     type: PaymentApiResponseDto,
   })
   async findAllPayment(@GetUser('id') userId: string): Promise<{
@@ -111,7 +111,7 @@ export class PaymentController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Lay thong tin thanh toan thanh cong',
+    description: 'Lấy thông tin thanh toán thành công',
     type: PaymentApiResponseDto,
   })
   async findOnePayment(
@@ -119,5 +119,33 @@ export class PaymentController {
     @Param('id') id: string,
   ): Promise<PaymentApiResponseDto> {
     return await this.paymentService.findOnePayment(userId, id);
+  }
+
+  // Get payment by order id api
+  @Get('order/:orderId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Lấy thông tin thanh toán theo id order',
+    description: 'Lấy thông tin thanh toán theo id order',
+  })
+  @ApiParam({
+    name: 'orderId',
+    type: String,
+    required: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lấy thông tin thanh toán thành công',
+    type: PaymentApiResponseDto,
+  })
+  async findPaymentByOrderId(
+    @Param('orderId') orderId: string,
+    @GetUser('id') userId: string,
+  ): Promise<{
+    success: boolean;
+    data: PaymentResponseDto | null;
+    message: string;
+  }> {
+    return await this.paymentService.findPaymentByOrderId(orderId, userId);
   }
 }

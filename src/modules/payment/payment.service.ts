@@ -181,7 +181,30 @@ export class PaymentService {
       success: true,
       data: this.formatPaymentResponse(payment),
       message: 'Thanh toán hoàn tất',
+    };
+  }
+
+  async findPaymentByOrderId(
+    orderId: string,
+    userId: string,
+  ): Promise<{
+    success: boolean;
+    data: PaymentResponseDto | null;
+    message: string;
+  }> {
+    const payment = await this.prisma.payment.findFirst({
+      where: { orderId: orderId, userId: userId },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Không tìm thấy hoạt động thanh toán');
     }
+
+    return {
+      success: true,
+      data: payment ? this.formatPaymentResponse(payment) : null,
+      message: 'Thanh toán hoàn tất',
+    };
   }
 
   private formatPaymentResponse(payment: Payment): PaymentResponseDto {
