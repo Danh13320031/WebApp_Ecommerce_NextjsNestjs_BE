@@ -4,12 +4,14 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -93,5 +95,29 @@ export class PaymentController {
     message: string;
   }> {
     return await this.paymentService.findAllPayment(userId);
+  }
+
+  // Get one payment api
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Lấy thông tin thanh toán theo id',
+    description: 'Lấy thông tin thanh toán theo id',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Lay thong tin thanh toan thanh cong',
+    type: PaymentApiResponseDto,
+  })
+  async findOnePayment(
+    @GetUser('id') userId: string,
+    @Param('id') id: string,
+  ): Promise<PaymentApiResponseDto> {
+    return await this.paymentService.findOnePayment(userId, id);
   }
 }

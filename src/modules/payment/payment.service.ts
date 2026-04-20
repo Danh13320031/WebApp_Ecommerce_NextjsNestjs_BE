@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EOrderStatus, EPaymentStatus, Payment, Prisma } from '@prisma/client';
+import { EOrderStatus, EPaymentStatus, Payment } from '@prisma/client';
 import {
   STRIPE_API_VERSION_SECURITY,
   STRIPE_SECRET_SECURITY,
@@ -163,6 +163,25 @@ export class PaymentService {
       data: payments.map((payment) => this.formatPaymentResponse(payment)),
       message: 'Thanh toán hoàn tất',
     };
+  }
+
+  async findOnePayment(
+    userId: string,
+    id: string,
+  ): Promise<PaymentApiResponseDto> {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id: id, userId: userId },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Không tìm thấy hoạt động thanh toán');
+    }
+
+    return {
+      success: true,
+      data: this.formatPaymentResponse(payment),
+      message: 'Thanh toán hoàn tất',
+    }
   }
 
   private formatPaymentResponse(payment: Payment): PaymentResponseDto {
