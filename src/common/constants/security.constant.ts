@@ -19,4 +19,6 @@ export const CORS_ALLOWED_HEADERS_SECURITY: string[] = [
 ];
 export const STRIPE_SECRET_SECURITY: string = process.env
   .STRIPE_SECRET as string;
+export const STRIPE_PUBLIC_SECURITY: string = process.env
+  .STRIPE_PUBLIC as string;
 export const STRIPE_API_VERSION_SECURITY = '2026-03-25.dahlia' as const;

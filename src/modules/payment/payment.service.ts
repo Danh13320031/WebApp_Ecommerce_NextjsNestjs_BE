@@ -4,10 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EOrderStatus, EPaymentStatus, Payment } from '@prisma/client';
-import {
-  STRIPE_API_VERSION_SECURITY,
-  STRIPE_SECRET_SECURITY,
-} from 'src/common/constants/security.constant';
+import { STRIPE_API_VERSION_SECURITY } from 'src/common/constants/security.constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Stripe from 'stripe';
 import {
@@ -23,9 +20,18 @@ import {
 @Injectable()
 export class PaymentService {
   private stripe: Stripe.Stripe;
+  private stripeSecret: string | undefined;
 
   constructor(private prisma: PrismaService) {
-    this.stripe = new Stripe(STRIPE_SECRET_SECURITY!, {
+    this.stripeSecret = process.env.STRIPE_SECRET
+      ? process.env.STRIPE_SECRET
+      : undefined;
+
+    if (!this.stripeSecret) {
+      throw new Error('Stripe secret key không tìm thấy');
+    }
+
+    this.stripe = new Stripe(this.stripeSecret, {
       apiVersion: STRIPE_API_VERSION_SECURITY,
     });
   }
