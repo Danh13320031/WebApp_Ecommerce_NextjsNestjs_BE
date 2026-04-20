@@ -20,10 +20,12 @@ import {
 @Injectable()
 export class PaymentService {
   private stripe: Stripe.Stripe;
-  private stripeSecret: string;
+  private stripeSecret: string | undefined;
 
   constructor(private prisma: PrismaService) {
-    this.stripeSecret = process.env.STRIPE_SECRET as string;
+    this.stripeSecret = process.env.STRIPE_SECRET
+      ? process.env.STRIPE_SECRET
+      : undefined;
 
     if (!this.stripeSecret) {
       throw new Error('Stripe secret key không tìm thấy');
