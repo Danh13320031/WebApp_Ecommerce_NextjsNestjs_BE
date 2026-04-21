@@ -7,6 +7,7 @@ import { Cart, CartItem } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CartItemResponseDto, CartResponseDto } from './dto/cart-response.dto';
 import { AddToCartDto } from './dto/create-cart.dto';
+import { UpdateCartItemQuantityDto } from './dto/update-cart.dto';
 
 @Injectable()
 export class CartService {
@@ -65,6 +66,35 @@ export class CartService {
         },
       });
     }
+
+    return await this.getOrCreateActiveCart(userId);
+  }
+
+  async updateCartItemQuantity(
+    userId: string,
+    id: string,
+    updateCartItemQuantityDto: UpdateCartItemQuantityDto,
+  ): Promise<CartResponseDto> {
+    const { quantity } = updateCartItemQuantityDto;
+    const cartItem = await this.prisma.cartItem.findUnique({
+      where: { id: id },
+      include: { cart: true, product: true },
+    });
+
+    if (!cartItem || cartItem.cart.userId !== userId) {
+      throw new NotFoundException('Không tìm thấy sản phẩm trong giỏ hàng');
+    }
+
+    if (cartItem.product.stock < quantity) {
+      throw new BadRequestException(
+        `Sản phẩm ${cartItem.product.name} hiện không còn trong kho. Lượng hàng tồn kho hiện có: ${cartItem.product.stock}.`,
+      );
+    }
+
+    await this.prisma.cartItem.update({
+      where: { id: id },
+      data: { quantity: quantity },
+    });
 
     return await this.getOrCreateActiveCart(userId);
   }

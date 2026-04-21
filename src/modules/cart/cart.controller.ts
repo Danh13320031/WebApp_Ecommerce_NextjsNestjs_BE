@@ -4,13 +4,22 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
   Post,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { CartService } from './cart.service';
 import { CartResponseDto } from './dto/cart-response.dto';
 import { AddToCartDto } from './dto/create-cart.dto';
+import { UpdateCartItemQuantityDto } from './dto/update-cart.dto';
 
 @ApiTags('Cart - Giỏ hàng')
 @Controller('carts')
@@ -53,5 +62,30 @@ export class CartController {
     @Body() addToCartDto: AddToCartDto,
   ): Promise<CartResponseDto> {
     return await this.cartService.addToCart(userId, addToCartDto);
+  }
+
+  // Update cart item quantity in cart
+  @Patch('items/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Cập nhật lượng món hàng trong giỏ hàng',
+    description: 'Cập nhật lượng món hàng trong giỏ hàng',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'ID món hàng trong giỏ hàng',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cập nhật lượng món hàng trong giỏ hàng thanh cong',
+    type: CartResponseDto,
+  })
+  async updateCartItemQuantity(
+    @GetUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() updateCartItemQuantityDto: UpdateCartItemQuantityDto,
+  ): Promise<CartResponseDto> {
+    return await this.cartService.updateCartItemQuantity(userId, id, updateCartItemQuantityDto);
   }
 }
