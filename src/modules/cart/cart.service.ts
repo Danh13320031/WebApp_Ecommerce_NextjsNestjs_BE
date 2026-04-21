@@ -99,6 +99,21 @@ export class CartService {
     return await this.getOrCreateActiveCart(userId);
   }
 
+  async removeCartItem(userId: string, id: string): Promise<CartResponseDto> {
+    const cartItem = await this.prisma.cartItem.findUnique({
+      where: { id: id },
+      include: { cart: true },
+    });
+
+    if (!cartItem || cartItem.cart.userId !== userId) {
+      throw new NotFoundException('Không tìm thấy sản phẩm trong giỏ hàng');
+    }
+
+    await this.prisma.cartItem.delete({ where: { id: id } });
+
+    return await this.getOrCreateActiveCart(userId);
+  }
+
   private formatCartResponse(
     cart: Cart & { cartItems: CartItem[] },
   ): CartResponseDto {

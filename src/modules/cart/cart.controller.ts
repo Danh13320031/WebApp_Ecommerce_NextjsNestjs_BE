@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -64,12 +65,12 @@ export class CartController {
     return await this.cartService.addToCart(userId, addToCartDto);
   }
 
-  // Update cart item quantity in cart
+  // Update cart item (product) quantity in cart
   @Patch('items/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Cập nhật lượng món hàng trong giỏ hàng',
-    description: 'Cập nhật lượng món hàng trong giỏ hàng',
+    summary: 'Cập nhật số lượng món hàng (sản phẩm) trong giỏ hàng',
+    description: 'Cập nhật số lượng món hàng (sản phẩm) trong giỏ hàng',
   })
   @ApiParam({
     name: 'id',
@@ -78,7 +79,8 @@ export class CartController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Cập nhật lượng món hàng trong giỏ hàng thanh cong',
+    description:
+      'Cập nhật số lượng món hàng (sản phẩm) trong giỏ hàng thanh cong',
     type: CartResponseDto,
   })
   async updateCartItemQuantity(
@@ -86,6 +88,34 @@ export class CartController {
     @Param('id') id: string,
     @Body() updateCartItemQuantityDto: UpdateCartItemQuantityDto,
   ): Promise<CartResponseDto> {
-    return await this.cartService.updateCartItemQuantity(userId, id, updateCartItemQuantityDto);
+    return await this.cartService.updateCartItemQuantity(
+      userId,
+      id,
+      updateCartItemQuantityDto,
+    );
+  }
+
+  // Remove cart item (product) from cart
+  @Delete('items/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Xóa món hàng (sản phẩm) trong giỏ hàng',
+    description: 'Xóa món hàng (sản phẩm) trong giỏ hàng',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'ID món hàng trong giỏ hàng',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Xóa món hàng (sản phẩm) trong giỏ hàng thanh cong',
+    type: CartResponseDto,
+  })
+  async removeCartItem(
+    @GetUser('id') userId: string,
+    @Param('id') id: string,
+  ): Promise<CartResponseDto> {
+    return await this.cartService.removeCartItem(userId, id);
   }
 }
