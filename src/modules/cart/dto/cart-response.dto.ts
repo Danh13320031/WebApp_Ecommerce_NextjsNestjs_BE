@@ -47,7 +47,7 @@ export class CartItemResponseDto {
   })
   @IsNotEmpty({ message: 'Số lượng khóng được bỏ trống' })
   @Type(() => Number)
-  @IsNumber({}, { message: 'Số lượng phải là một số' })
+  @IsNumber({ maxDecimalPlaces: 0 }, { message: 'Số lượng phải là một số' })
   quantity!: number;
 
   @ApiProperty({
