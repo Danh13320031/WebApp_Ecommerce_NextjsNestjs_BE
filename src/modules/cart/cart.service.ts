@@ -6,7 +6,7 @@ import {
 import { Cart, CartItem } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CartItemResponseDto, CartResponseDto } from './dto/cart-response.dto';
-import { AddToCartDto } from './dto/create-cart.dto';
+import { AddToCartDto, MergeGuestCartDto } from './dto/create-cart.dto';
 import { UpdateCartItemQuantityDto } from './dto/update-cart.dto';
 
 @Injectable()
@@ -126,6 +126,33 @@ export class CartService {
     await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 
     return await this.getOrCreateActiveCart(userId);
+  }
+
+  async mergeGuestCart(
+    userId: string,
+    mergeGuestCartDto: MergeGuestCartDto,
+  ): Promise<CartResponseDto> {
+    const { items } = mergeGuestCartDto;
+
+    if (!items || items.length === 0) {
+      return this.getOrCreateActiveCart(userId);
+    }
+
+    for (const item of items) {
+      try {
+        await this.addToCart(userId, {
+          productId: item.productId,
+          quantity: item.quantity,
+        });
+      } catch (error) {
+        console.warn(
+          `[CartService] lỗi khi gộp giỏ hàng: ${item.productId}`,
+          error,
+        );
+      }
+    }
+
+    return this.getOrCreateActiveCart(userId);
   }
 
   private formatCartResponse(

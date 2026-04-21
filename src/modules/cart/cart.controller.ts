@@ -19,7 +19,7 @@ import {
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { CartService } from './cart.service';
 import { CartResponseDto } from './dto/cart-response.dto';
-import { AddToCartDto } from './dto/create-cart.dto';
+import { AddToCartDto, MergeGuestCartDto } from './dto/create-cart.dto';
 import { UpdateCartItemQuantityDto } from './dto/update-cart.dto';
 
 @ApiTags('Cart - Giỏ hàng')
@@ -27,6 +27,7 @@ import { UpdateCartItemQuantityDto } from './dto/update-cart.dto';
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
+  // Get or create cart api
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -65,7 +66,7 @@ export class CartController {
     return await this.cartService.addToCart(userId, addToCartDto);
   }
 
-  // Update cart item (product) quantity in cart
+  // Update cart item (product) quantity in cart api
   @Patch('items/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -95,7 +96,7 @@ export class CartController {
     );
   }
 
-  // Remove cart item (product) from cart
+  // Remove cart item (product) from cart api
   @Delete('items/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -119,7 +120,7 @@ export class CartController {
     return await this.cartService.removeCartItem(userId, id);
   }
 
-  // Clear all cart items (products) in cart
+  // Clear all cart items (products) in cart api
   @Delete()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -133,5 +134,27 @@ export class CartController {
   })
   async clearCart(@GetUser('id') userId: string): Promise<CartResponseDto> {
     return await this.cartService.clearCart(userId);
+  }
+
+  // Merge guest cart with user cart api
+  @Post('merge')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Gộp giỏ hàng người dùng với giỏ hàng khách',
+    description: 'Gộp giỏ hàng người dùng với giỏ hàng khách',
+  })
+  @ApiBody({
+    type: MergeGuestCartDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Gộp giỏ hàng người dùng với giỏ hàng khách thanh cong',
+    type: CartResponseDto,
+  })
+  async mergeGuestCart(
+    @GetUser('id') userId: string,
+    @Body() mergeGuestCartDto: MergeGuestCartDto,
+  ): Promise<CartResponseDto> {
+    return await this.cartService.mergeGuestCart(userId, mergeGuestCartDto);
   }
 }
