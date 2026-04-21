@@ -1,10 +1,10 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Cart, CartItem } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CartItemResponseDto, CartResponseDto } from './dto/cart-response.dto';
 import { AddToCartDto, MergeGuestCartDto } from './dto/create-cart.dto';
 import { UpdateCartItemQuantityDto } from './dto/update-cart.dto';
