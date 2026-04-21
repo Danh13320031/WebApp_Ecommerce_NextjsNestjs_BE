@@ -1,13 +1,71 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Cart, CartItem } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CartItemResponseDto, CartResponseDto } from './dto/cart-response.dto';
+import { AddToCartDto } from './dto/create-cart.dto';
 
 @Injectable()
 export class CartService {
   constructor(private prisma: PrismaService) {}
 
   async getOrCreateCart(userId: string): Promise<CartResponseDto> {
+    return await this.getOrCreateActiveCart(userId);
+  }
+
+  async addToCart(
+    userId: string,
+    addToCartDto: AddToCartDto,
+  ): Promise<CartResponseDto> {
+    const { productId, quantity } = addToCartDto;
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product)
+      throw new NotFoundException(`Không tìm thấy sản phẩm: ${productId}`);
+    if (!product.isActive)
+      throw new BadRequestException(`Sản phẩm: ${productId} dừng hoạt động`);
+    if (product.stock < quantity)
+      throw new BadRequestException(
+        `Sản phẩm ${product.name} hiện không còn trong kho. Lượng hàng tồn kho hiện có: ${product.stock}.`,
+      );
+
+    const cart = await this.getOrCreateActiveCart(userId);
+    const existingCartItem = await this.prisma.cartItem.findUnique({
+      where: {
+        cartId_productId: {
+          cartId: cart.id,
+          productId: productId,
+        },
+      },
+    });
+
+    if (existingCartItem) {
+      const newQuantity = existingCartItem.quantity + quantity;
+
+      if (product.stock < newQuantity)
+        throw new BadRequestException(
+          `Sản phẩm ${product.name} hiện không còn trong kho. Lượng hàng tồn kho hiện có: ${product.stock}.`,
+        );
+
+      await this.prisma.cartItem.update({
+        where: { id: existingCartItem.id },
+        data: { quantity: newQuantity },
+      });
+    } else {
+      await this.prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId: productId,
+          quantity: quantity,
+        },
+      });
+    }
+
     return await this.getOrCreateActiveCart(userId);
   }
 
