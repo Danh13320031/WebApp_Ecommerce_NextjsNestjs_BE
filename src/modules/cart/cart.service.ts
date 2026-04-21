@@ -114,6 +114,20 @@ export class CartService {
     return await this.getOrCreateActiveCart(userId);
   }
 
+  async clearCart(userId: string): Promise<CartResponseDto> {
+    const cart = await this.prisma.cart.findFirst({
+      where: { userId: userId, checkedOut: false },
+    });
+
+    if (!cart) {
+      throw new NotFoundException('Không tìm thấy giỏ hàng');
+    }
+
+    await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+    return await this.getOrCreateActiveCart(userId);
+  }
+
   private formatCartResponse(
     cart: Cart & { cartItems: CartItem[] },
   ): CartResponseDto {
