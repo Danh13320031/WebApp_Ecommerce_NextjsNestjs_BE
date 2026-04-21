@@ -118,4 +118,20 @@ export class CartController {
   ): Promise<CartResponseDto> {
     return await this.cartService.removeCartItem(userId, id);
   }
+
+  // Clear all cart items (products) in cart
+  @Delete()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Xóa tất cả môn hàng (sản phẩm) trong giỏ hàng',
+    description: 'Xóa tất cả môn hàng (sản phẩm) trong giỏ hàng',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Xóa tất cả môn hàng (sản phẩm) trong giỏ hàng thanh cong',
+    type: CartResponseDto,
+  })
+  async clearCart(@GetUser('id') userId: string): Promise<CartResponseDto> {
+    return await this.cartService.clearCart(userId);
+  }
 }
