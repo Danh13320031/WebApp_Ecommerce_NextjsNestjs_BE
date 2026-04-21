@@ -1,3 +1,4 @@
+import { ProductResponseDto } from '@/modules/product/dto/product-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -7,7 +8,6 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { ProductResponseDto } from 'src/modules/product/dto/product-response.dto';
 
 export class CartItemResponseDto {
   @ApiProperty({

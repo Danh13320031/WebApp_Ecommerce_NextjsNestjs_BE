@@ -1,3 +1,4 @@
+import { GetUser } from '@/common/decorators/get-user.decorator';
 import {
   Body,
   Controller,
@@ -16,7 +17,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { CartService } from './cart.service';
 import { CartResponseDto } from './dto/cart-response.dto';
 import { AddToCartDto, MergeGuestCartDto } from './dto/create-cart.dto';
